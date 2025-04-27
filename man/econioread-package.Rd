@@ -4,12 +4,12 @@
 \name{econioread-package}
 \alias{econioread}
 \alias{econioread-package}
-\title{econioread: What the Package Does (Title Case)}
+\title{econioread: Read Input-Output Tables}
 \description{
 More about what it does (maybe more than one line). Continuation lines should be indented.
 }
 \author{
-\strong{Maintainer}: Jane Doe \email{jane@example.com}
+\strong{Maintainer}: Mizuki Uchida \email{uchidamizuki@vivaldi.net}
 
 }
 \keyword{internal}

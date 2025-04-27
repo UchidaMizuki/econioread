@@ -1,11 +1,12 @@
 Package: econioread
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Read Input-Output Tables
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Mizuki", 
+      "Uchida", 
+      email = "uchidamizuki@vivaldi.net", 
       role = c("aut", "cre")
     )
   )
