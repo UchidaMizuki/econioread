@@ -1,5 +1,5 @@
 #' @export
-adverbial::end_step
+adverbial::as_step
 
 #' @export
-adverbial::wrap_step
+adverbial::end_step

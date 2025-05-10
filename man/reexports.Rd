@@ -3,8 +3,8 @@
 \docType{import}
 \name{reexports}
 \alias{reexports}
+\alias{as_step}
 \alias{end_step}
-\alias{wrap_step}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -12,6 +12,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{adverbial}{\code{\link[adverbial]{end_step}}, \code{\link[adverbial]{wrap_step}}}
+  \item{adverbial}{\code{\link[adverbial]{as_step}}, \code{\link[adverbial]{end_step}}}
 }}
 

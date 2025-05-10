@@ -73,7 +73,7 @@ io_table_read_cells <- function(
 
     # TODO: CSV import
   }
-  adverbial::wrap_step(f, "io_table_read_cells")(
+  adverbial::as_step(f, "io_table_read_cells")(
     file,
     sheets = sheets,
     rows_range = rows_range,
@@ -109,7 +109,7 @@ io_table_read_headers <- function(cells, input_names, output_names) {
     cells |>
       dplyr::select("numeric", dplyr::all_of(c(input_names, output_names)))
   }
-  adverbial::wrap_step(f, "io_table_read_headers")(
+  adverbial::as_step(f, "io_table_read_headers")(
     cells,
     input_names = input_names,
     output_names = output_names
@@ -140,7 +140,7 @@ io_table_read_sector_names <- function(
         .keep = "unused"
       )
   }
-  adverbial::wrap_step(f, "io_table_read_sector_names")(
+  adverbial::as_step(f, "io_table_read_sector_names")(
     cells,
     input_sector_name_glue = input_sector_name_glue,
     output_sector_name_glue = output_sector_name_glue
@@ -171,7 +171,7 @@ io_table_read_regions <- function(
         .keep = "unused"
       )
   }
-  adverbial::wrap_step(f, "io_table_read_regions")(
+  adverbial::as_step(f, "io_table_read_regions")(
     cells,
     input_region_glue = input_region_glue,
     output_region_glue = output_region_glue
@@ -251,7 +251,7 @@ io_table_read_sector_types <- function(
       ) |>
       tidyr::drop_na("input_sector_type", "output_sector_type")
   }
-  adverbial::wrap_step(f, "io_table_read_sector_types")(
+  adverbial::as_step(f, "io_table_read_sector_types")(
     cells,
     competitive_import = competitive_import,
     industry_pattern = industry_pattern,
@@ -297,7 +297,7 @@ io_table_read_data <- function(cells, scale, check_total = TRUE) {
       )
     }
   }
-  adverbial::wrap_step(f, "io_table_read_data")(
+  adverbial::as_step(f, "io_table_read_data")(
     cells,
     scale = scale,
     check_total = check_total
