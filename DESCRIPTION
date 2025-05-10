@@ -2,14 +2,8 @@ Package: econioread
 Type: Package
 Title: Read Input-Output Tables
 Version: 0.1.0
-Authors@R: c(
-    person(
-      "Mizuki", 
-      "Uchida", 
-      email = "uchidamizuki@vivaldi.net", 
-      role = c("aut", "cre")
-    )
-  )
+Authors@R: 
+    person("Mizuki", "Uchida", , "uchidamizuki@vivaldi.net", role = c("aut", "cre"))
 Description: More about what it does (maybe more than one line).
     Continuation lines should be indented.
 License: MIT + file LICENSE
