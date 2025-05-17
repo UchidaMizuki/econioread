@@ -4,7 +4,7 @@
 \alias{io_table_read_data}
 \title{Create data of an input-output table}
 \usage{
-io_table_read_data(cells, scale, check_total = TRUE)
+io_table_read_data(cells, scale, total_tolerance = .Machine$double.eps^0.5)
 }
 \arguments{
 \item{cells}{A data frame containing the cell contents of an input-output
@@ -12,9 +12,8 @@ table.}
 
 \item{scale}{A scalar numeric specifying the scale for the numeric values.}
 
-\item{check_total}{A scalar logical indicating whether to check the total of
-the input-output table. Passed to [econio::io_table_multiregional()] or
-[econio::io_table_regional()].}
+\item{total_tolerance}{Passed to [econio::io_table_multiregional()] or
+[econio::io_table_regional()]. By default, `.Machine$double.eps^0.5`.}
 }
 \description{
 `io_table_read_data()` creates data of an input-output table.

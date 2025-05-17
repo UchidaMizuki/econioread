@@ -270,12 +270,15 @@ io_table_read_sector_types <- function(
 #' @param cells A data frame containing the cell contents of an input-output
 #' table.
 #' @param scale A scalar numeric specifying the scale for the numeric values.
-#' @param check_total A scalar logical indicating whether to check the total of
-#' the input-output table. Passed to [econio::io_table_multiregional()] or
-#' [econio::io_table_regional()].
+#' @param total_tolerance Passed to [econio::io_table_multiregional()] or
+#' [econio::io_table_regional()]. By default, `.Machine$double.eps^0.5`.
 #'
 #' @export
-io_table_read_data <- function(cells, scale, check_total = TRUE) {
+io_table_read_data <- function(
+  cells,
+  scale,
+  total_tolerance = .Machine$double.eps^0.5
+) {
   f <- function(cells, scale, check_total) {
     cells <- cells |>
       dplyr::mutate(
@@ -287,13 +290,13 @@ io_table_read_data <- function(cells, scale, check_total = TRUE) {
       econio::io_table_multiregional(
         cells,
         competitive_import = competitive_import,
-        check_total = check_total
+        total_tolerance = total_tolerance
       )
     } else {
       econio::io_table_regional(
         cells,
         competitive_import = competitive_import,
-        check_total = check_total
+        total_tolerance = total_tolerance
       )
     }
   }
