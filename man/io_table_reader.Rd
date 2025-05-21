@@ -12,6 +12,10 @@ io_table_reader(file, region_type = c("regional", "multiregional"))
 \item{region_type}{Type of the input-output table. Either `"regional"` or
 `"multiregional"`, by default `"regional"`.}
 }
+\value{
+A function that takes a file path and returns a step-by-step
+input-output table reader.
+}
 \description{
 `io_table_reader()` provides a step-by-step process to read an input-output
 table from a file.

@@ -15,6 +15,9 @@ table.}
 \item{total_tolerance}{Passed to [econio::io_table_multiregional()] or
 [econio::io_table_regional()]. By default, `.Machine$double.eps^0.5`.}
 }
+\value{
+An input-output table object.
+}
 \description{
 `io_table_read_data()` creates data of an input-output table.
 }

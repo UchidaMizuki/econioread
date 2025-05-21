@@ -24,6 +24,9 @@ input-output table is a competitive import type.}
 
 \item{industry_pattern, import_pattern, value_added_pattern, final_demand_pattern, export_pattern, total_pattern}{A scalar character specifying the pattern for sector types.}
 }
+\value{
+A data frame containing the sector types of an input-output table.
+}
 \description{
 `io_table_read_sector_types()` creates columns of sector types in an
 input-output table.

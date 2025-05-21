@@ -17,6 +17,9 @@ table.}
 \item{input_sector_name_glue, output_sector_name_glue}{A scalar character
 speecifying the glue pattern for input and output sector names.}
 }
+\value{
+A data frame containing the sector names of an input-output table.
+}
 \description{
 `io_table_read_sector_names()` creates columns of sector names in an
 input-output table.

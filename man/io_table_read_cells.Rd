@@ -6,7 +6,7 @@
 \usage{
 io_table_read_cells(
   file,
-  sheets = NA,
+  sheets = NULL,
   rows_range = c(1, Inf),
   rows_exclude = integer(),
   cols_range = c(1, Inf),
@@ -24,6 +24,9 @@ range of rows and columns to read from.}
 
 \item{rows_exclude, cols_exclude}{A numeric vector of row and column numbers
 to exclude.}
+}
+\value{
+A data frame containing the cell contents of an input-output table.
 }
 \description{
 `io_table_read_cells()` reads the cell contents of an input-output table.

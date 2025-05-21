@@ -13,6 +13,9 @@ table.}
 \item{input_region_glue, output_region_glue}{A scalar character string
 specifying the glue pattern for input and output regions.}
 }
+\value{
+A data frame containing the regions of an input-output table.
+}
 \description{
 `io_table_read_regions()` creates columns of regions in an input-output
 table.

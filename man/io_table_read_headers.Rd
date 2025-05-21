@@ -4,13 +4,16 @@
 \alias{io_table_read_headers}
 \title{Create headers of an input-output table}
 \usage{
-io_table_read_headers(cells, input_names, output_names)
+io_table_read_headers(cells, input_names, output_names, value_na = c("", "NA"))
 }
 \arguments{
 \item{cells}{A data frame containing the cell contents of an input-output
 table.}
 
 \item{input_names, output_names}{A character vector of input and output names.}
+}
+\value{
+A data frame containing the headers of an input-output table.
 }
 \description{
 `io_table_read_headers()` creates headers of an input-output table.

@@ -7,6 +7,9 @@
 #' @param region_type Type of the input-output table. Either `"regional"` or
 #' `"multiregional"`, by default `"regional"`.
 #'
+#' @return A function that takes a file path and returns a step-by-step
+#' input-output table reader.
+#'
 #' @export
 io_table_reader <- function(
   file,
@@ -41,10 +44,12 @@ io_table_reader <- function(
 #' @param rows_exclude,cols_exclude A numeric vector of row and column numbers
 #' to exclude.
 #'
+#' @return A data frame containing the cell contents of an input-output table.
+#'
 #' @export
 io_table_read_cells <- function(
   file,
-  sheets = NA,
+  sheets = NULL,
   rows_range = c(1, Inf),
   rows_exclude = integer(),
   cols_range = c(1, Inf),
@@ -60,18 +65,36 @@ io_table_read_cells <- function(
   ) {
     vctrs::vec_check_size(rows_range, 2)
     vctrs::vec_check_size(cols_range, 2)
-    tidyxl::xlsx_cells(file, sheets = sheets) |>
+
+    switch(
+      fs::path_ext(file),
+      csv = readr::read_csv(
+        file,
+        col_names = FALSE,
+        col_types = "c",
+        name_repair = "minimal",
+        skip_empty_rows = FALSE,
+      ) |>
+        unpivotr::as_cells(),
+      xls = readxl::read_xls(
+        file,
+        sheet = sheets,
+        col_names = FALSE,
+        col_types = "text",
+        .name_repair = "minimal",
+      ) |>
+        unpivotr::as_cells(),
+      xlsx = tidyxl::xlsx_cells(file, sheets = sheets %||% NA)
+    ) |>
+      unpivotr::pack() |>
+      dplyr::select("row", "col", "value") |>
+      unpivotr::unpack() |>
       dplyr::filter(
         dplyr::between(.data$row, rows_range[[1]], rows_range[[2]]),
         !.data$row %in% .env$rows_exclude,
         dplyr::between(.data$col, cols_range[[1]], cols_range[[2]]),
         !.data$col %in% .env$cols_exclude
-      ) |>
-      unpivotr::pack() |>
-      dplyr::select("row", "col", "value") |>
-      unpivotr::unpack()
-
-    # TODO: CSV import
+      )
   }
   adverbial::as_step(f, "io_table_read_cells")(
     file,
@@ -90,9 +113,17 @@ io_table_read_cells <- function(
 #' @param cells A data frame containing the cell contents of an input-output
 #' table.
 #' @param input_names,output_names A character vector of input and output names.
+#' @inheritParams readr::parse_number
+#'
+#' @return A data frame containing the headers of an input-output table.
 #'
 #' @export
-io_table_read_headers <- function(cells, input_names, output_names) {
+io_table_read_headers <- function(
+  cells,
+  input_names,
+  output_names,
+  value_na = c("", "NA")
+) {
   f <- function(cells, input_names, output_names) {
     for (i in seq_along(input_names)) {
       input_name_direction <- names(input_names)[[i]] %||% "left"
@@ -107,7 +138,12 @@ io_table_read_headers <- function(cells, input_names, output_names) {
         unpivotr::behead(output_name_direction, !!output_name)
     }
     cells |>
-      dplyr::select("numeric", dplyr::all_of(c(input_names, output_names)))
+      unpivotr::pack() |>
+      dplyr::mutate(
+        value = .data$value |>
+          purrr::map_dbl(readr::parse_number)
+      ) |>
+      dplyr::select(dplyr::all_of(c(input_names, output_names)), "value")
   }
   adverbial::as_step(f, "io_table_read_headers")(
     cells,
@@ -126,6 +162,8 @@ io_table_read_headers <- function(cells, input_names, output_names) {
 #' @param input_sector_name_glue,output_sector_name_glue A scalar character
 #' speecifying the glue pattern for input and output sector names.
 #'
+#' @return A data frame containing the sector names of an input-output table.
+#'
 #' @export
 io_table_read_sector_names <- function(
   cells,
@@ -137,7 +175,8 @@ io_table_read_sector_names <- function(
       dplyr::mutate(
         input_sector_name = stringr::str_glue(input_sector_name_glue),
         output_sector_name = stringr::str_glue(output_sector_name_glue),
-        .keep = "unused"
+        .keep = "unused",
+        .before = "value"
       )
   }
   adverbial::as_step(f, "io_table_read_sector_names")(
@@ -156,6 +195,8 @@ io_table_read_sector_names <- function(
 #' table.
 #' @param input_region_glue,output_region_glue A scalar character string
 #' specifying the glue pattern for input and output regions.
+#'
+#' @return A data frame containing the regions of an input-output table.
 #'
 #' @export
 io_table_read_regions <- function(
@@ -189,6 +230,8 @@ io_table_read_regions <- function(
 #' input-output table is a competitive import type.
 #' @param industry_pattern,import_pattern,value_added_pattern,final_demand_pattern,export_pattern,total_pattern
 #' A scalar character specifying the pattern for sector types.
+#'
+#' @return A data frame containing the sector types of an input-output table.
 #'
 #' @export
 io_table_read_sector_types <- function(
@@ -273,6 +316,8 @@ io_table_read_sector_types <- function(
 #' @param total_tolerance Passed to [econio::io_table_multiregional()] or
 #' [econio::io_table_regional()]. By default, `.Machine$double.eps^0.5`.
 #'
+#' @return An input-output table object.
+#'
 #' @export
 io_table_read_data <- function(
   cells,
@@ -282,7 +327,7 @@ io_table_read_data <- function(
   f <- function(cells, scale, check_total) {
     cells <- cells |>
       dplyr::mutate(
-        numeric = .data$numeric * scale
+        value = .data$value * scale
       )
 
     competitive_import <- "import" %in% cells$output_sector_type
