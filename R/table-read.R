@@ -113,7 +113,6 @@ io_table_read_cells <- function(
 #' @param cells A data frame containing the cell contents of an input-output
 #' table.
 #' @param input_names,output_names A character vector of input and output names.
-#' @inheritParams readr::parse_number
 #'
 #' @return A data frame containing the headers of an input-output table.
 #'
@@ -121,8 +120,7 @@ io_table_read_cells <- function(
 io_table_read_headers <- function(
   cells,
   input_names,
-  output_names,
-  value_na = c("", "NA")
+  output_names
 ) {
   f <- function(cells, input_names, output_names) {
     for (i in seq_along(input_names)) {
@@ -139,10 +137,6 @@ io_table_read_headers <- function(
     }
     cells |>
       unpivotr::pack() |>
-      dplyr::mutate(
-        value = .data$value |>
-          purrr::map_dbl(readr::parse_number)
-      ) |>
       dplyr::select(dplyr::all_of(c(input_names, output_names)), "value")
   }
   adverbial::as_step(f, "io_table_read_headers")(
@@ -312,7 +306,8 @@ io_table_read_sector_types <- function(
 #'
 #' @param cells A data frame containing the cell contents of an input-output
 #' table.
-#' @param scale A scalar numeric specifying the scale for the numeric values.
+#' @param value_scale A scalar numeric specifying the scale for the numeric values.
+#' @param value_na A character vector of strings to be treated as NA values.
 #' @param total_tolerance Passed to [econio::io_table_multiregional()] or
 #' [econio::io_table_regional()]. By default, `.Machine$double.eps^0.5`.
 #'
@@ -321,13 +316,16 @@ io_table_read_sector_types <- function(
 #' @export
 io_table_read_data <- function(
   cells,
-  scale,
+  value_scale,
+  value_na = c("", "NA"),
   total_tolerance = .Machine$double.eps^0.5
 ) {
-  f <- function(cells, scale, check_total) {
+  f <- function(cells, scale, total_tolerance) {
     cells <- cells |>
       dplyr::mutate(
-        value = .data$value * scale
+        value = .data$value |>
+          purrr::map_dbl(\(x) readr::parse_number(x, na = value_na)),
+        value = .data$value * .env$value_scale,
       )
 
     competitive_import <- "import" %in% cells$output_sector_type
@@ -348,6 +346,6 @@ io_table_read_data <- function(
   adverbial::as_step(f, "io_table_read_data")(
     cells,
     scale = scale,
-    check_total = check_total
+    total_tolerance = total_tolerance
   )
 }

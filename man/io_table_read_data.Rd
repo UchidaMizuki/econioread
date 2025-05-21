@@ -4,13 +4,20 @@
 \alias{io_table_read_data}
 \title{Create data of an input-output table}
 \usage{
-io_table_read_data(cells, scale, total_tolerance = .Machine$double.eps^0.5)
+io_table_read_data(
+  cells,
+  value_scale,
+  value_na = c("", "NA"),
+  total_tolerance = .Machine$double.eps^0.5
+)
 }
 \arguments{
 \item{cells}{A data frame containing the cell contents of an input-output
 table.}
 
-\item{scale}{A scalar numeric specifying the scale for the numeric values.}
+\item{value_scale}{A scalar numeric specifying the scale for the numeric values.}
+
+\item{value_na}{A character vector of strings to be treated as NA values.}
 
 \item{total_tolerance}{Passed to [econio::io_table_multiregional()] or
 [econio::io_table_regional()]. By default, `.Machine$double.eps^0.5`.}
