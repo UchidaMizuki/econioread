@@ -284,7 +284,11 @@ io_table_read_sector_types <- function(
     cells |>
       dplyr::mutate(
         input_sector_type = dplyr::case_when(!!!cases_input_sector_types),
-        output_sector_type = dplyr::case_when(!!!cases_output_sector_types)
+        .before = "input_sector_name"
+      ) |>
+      dplyr::mutate(
+        output_sector_type = dplyr::case_when(!!!cases_output_sector_types),
+        .before = "output_sector_name"
       ) |>
       tidyr::drop_na("input_sector_type", "output_sector_type")
   }
@@ -324,9 +328,11 @@ io_table_read_data <- function(
     cells <- cells |>
       dplyr::mutate(
         value = .data$value |>
-          purrr::map_dbl(\(x) readr::parse_number(x, na = value_na)),
+          purrr::map_chr(as.character) |>
+          readr::parse_number(na = value_na),
         value = .data$value * .env$value_scale,
-      )
+      ) |>
+      tidyr::drop_na("value")
 
     competitive_import <- "import" %in% cells$output_sector_type
     if (all(c("input_region", "output_region") %in% names(cells))) {
