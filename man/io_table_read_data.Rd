@@ -8,7 +8,8 @@ io_table_read_data(
   cells,
   value_scale,
   value_na = c("", "NA"),
-  total_tolerance = .Machine$double.eps^0.5
+  total_tolerance = .Machine$double.eps^0.5,
+  check_axis = TRUE
 )
 }
 \arguments{
@@ -21,6 +22,9 @@ table.}
 
 \item{total_tolerance}{Passed to [econio::io_table_multiregional()] or
 [econio::io_table_regional()]. By default, `.Machine$double.eps^0.5`.}
+
+\item{check_axis}{Passed to [econio::io_table_multiregional()] or
+[econio::io_table_regional()]. By default, `TRUE`.}
 }
 \value{
 An input-output table object.
