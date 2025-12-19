@@ -223,7 +223,9 @@ io_table_read_regions <- function(
 #' @param competitive_import A scalar logical indicating whether the
 #' input-output table is a competitive import type.
 #' @param industry_pattern,import_pattern,value_added_pattern,final_demand_pattern,export_pattern,total_pattern
-#' A scalar character specifying the pattern for sector types.
+#' A scalar character specifying the pattern for sector names.
+#' @param industry_total_pattern,import_total_pattern,value_added_total_pattern,final_demand_total_pattern,export_total_pattern
+#' A scalar character specifying the pattern for total sector names.
 #'
 #' @return A data frame containing the sector types of an input-output table.
 #'
@@ -231,12 +233,17 @@ io_table_read_regions <- function(
 io_table_read_sector_types <- function(
   cells,
   competitive_import,
-  industry_pattern,
-  import_pattern,
-  value_added_pattern,
-  final_demand_pattern,
-  export_pattern,
-  total_pattern
+  industry_pattern = NULL,
+  industry_total_pattern = NULL,
+  import_pattern = NULL,
+  import_total_pattern = NULL,
+  value_added_pattern = NULL,
+  value_added_total_pattern = NULL,
+  final_demand_pattern = NULL,
+  final_demand_total_pattern = NULL,
+  export_pattern = NULL,
+  export_total_pattern = NULL,
+  total_pattern = NULL
 ) {
   f <- function(
     cells,
@@ -251,46 +258,145 @@ io_table_read_sector_types <- function(
     competitive_import <- vctrs::vec_cast(competitive_import, logical())
     vctrs::vec_check_size(competitive_import, 1)
 
-    input_sector_types <- if (competitive_import) {
-      c("industry", "value_added", "total")
+    sector_types <- if (competitive_import) {
+      list(
+        input = c("industry", "value_added", "total"),
+        output = c("industry", "final_demand", "export", "import", "total")
+      )
     } else {
-      c("industry", "import", "value_added", "total")
-    }
-    output_sector_types <- if (competitive_import) {
-      c("industry", "final_demand", "export", "import", "total")
-    } else {
-      c("industry", "final_demand", "export", "total")
+      list(
+        input = c("industry", "import", "value_added", "total"),
+        output = c("industry", "final_demand", "export", "total")
+      )
     }
 
-    get_cases_sector_types <- function(sector_types, col_sector_name) {
-      purrr::map(sector_types, function(sector_type) {
+    sector_names <- vctrs::vec_init(list(), 2) |>
+      rlang::set_names(c("input", "output"))
+    for (axis in c("input", "output")) {
+      sector_names_todo <- cells[[paste(axis, "sector_name", sep = "_")]] |>
+        vctrs::vec_unique()
+      sector_names_done <- vctrs::vec_init_along(
+        list(),
+        sector_types[[axis]]
+      ) |>
+        rlang::set_names(sector_types[[axis]])
+
+      for (sector_type in sector_types[[axis]]) {
+        sector_pattern <- rlang::env_get(
+          nm = paste(
+            sector_type,
+            "pattern",
+            sep = "_"
+          ),
+          default = NULL
+        )
+        sector_total_pattern <- rlang::env_get(
+          nm = paste(
+            sector_type,
+            "total_pattern",
+            sep = "_"
+          ),
+          default = NULL
+        )
+
+        if (is.null(sector_total_pattern)) {
+          loc_sector <- stringr::str_which(
+            sector_names_todo,
+            sector_pattern
+          )
+          sector_names_done[[sector_type]] <- sector_names_todo |>
+            vctrs::vec_slice(loc_sector)
+          sector_names_todo <- sector_names_todo |>
+            vctrs::vec_slice(-loc_sector)
+        } else {
+          # Extract those that match `sector_total_pattern`
+          loc_sector_total <- stringr::str_which(
+            sector_names_todo,
+            sector_total_pattern
+          )
+          vctrs::vec_check_size(loc_sector_total, 1)
+
+          loc_sector <- seq_len(loc_sector_total - 1)
+          sector_names_done[[sector_type]] <- sector_names_todo |>
+            vctrs::vec_slice(loc_sector)
+          sector_names_todo <- sector_names_todo[-loc_sector]
+
+          # Extract those that match `sector_pattern`
+          loc_sector <- stringr::str_which(
+            sector_names_done[[sector_type]],
+            sector_pattern
+          )
+          sector_names_done[[sector_type]] <- sector_names_done[[
+            sector_type
+          ]] |>
+            vctrs::vec_slice(loc_sector)
+        }
+      }
+      sector_names[[axis]] <- sector_names_done
+    }
+
+    get_cases_sector_types <- function(sector_types, axis) {
+      purrr::map(sector_types[[axis]], function(sector_type) {
         rlang::expr(
-          stringr::str_detect(
-            .data[[!!col_sector_name]],
-            .env[[!!paste(sector_type, "pattern", sep = "_")]]
-          ) ~
-            !!sector_type
+          !!sector_names[[axis]][[sector_type]] ~ !!sector_type
         )
       })
     }
+
     cases_input_sector_types <- get_cases_sector_types(
-      input_sector_types,
-      "input_sector_name"
+      sector_types,
+      "input"
     )
     cases_output_sector_types <- get_cases_sector_types(
-      output_sector_types,
-      "output_sector_name"
+      sector_types,
+      "output"
     )
     cells |>
       dplyr::mutate(
-        input_sector_type = dplyr::case_when(!!!cases_input_sector_types),
+        input_sector_type = dplyr::case_match(
+          .data$input_sector_name,
+          !!!cases_input_sector_types
+        ),
         .before = "input_sector_name"
       ) |>
       dplyr::mutate(
-        output_sector_type = dplyr::case_when(!!!cases_output_sector_types),
+        output_sector_type = dplyr::case_match(
+          .data$output_sector_name,
+          !!!cases_output_sector_types
+        ),
         .before = "output_sector_name"
       ) |>
       tidyr::drop_na("input_sector_type", "output_sector_type")
+
+    # get_cases_sector_types <- function(sector_types, col_sector_name) {
+    #   purrr::map(sector_types, function(sector_type) {
+    #     pattern <- .env[[!!paste(sector_type, "pattern", sep = "_")]]
+    #     if (!is.null(pattern)) {
+    #       rlang::expr(
+    #         stringr::str_detect(.data[[!!col_sector_name]], pattern) ~
+    #           !!sector_type
+    #       )
+    #     }
+    #   })
+    # }
+    # cases_input_sector_types <- get_cases_sector_types(
+    #   input_sector_types,
+    #   "input_sector_name"
+    # )
+    # cases_output_sector_types <- get_cases_sector_types(
+    #   output_sector_types,
+    #   "output_sector_name"
+    # )
+    # cells |>
+    #   dplyr::mutate(
+    #     input_sector_type = dplyr::case_when(!!!cases_input_sector_types),
+    #     .before = "input_sector_name"
+    #   ) |>
+    #   dplyr::mutate(
+    #     output_sector_type = dplyr::case_when(!!!cases_output_sector_types),
+    #     .before = "output_sector_name"
+    #   ) |>
+    #   tidyr::drop_na("input_sector_type", "output_sector_type")
   }
   adverbial::as_step(f, "io_table_read_sector_types")(
     cells,

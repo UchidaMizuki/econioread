@@ -7,12 +7,17 @@
 io_table_read_sector_types(
   cells,
   competitive_import,
-  industry_pattern,
-  import_pattern,
-  value_added_pattern,
-  final_demand_pattern,
-  export_pattern,
-  total_pattern
+  industry_pattern = NULL,
+  industry_total_pattern = NULL,
+  import_pattern = NULL,
+  import_total_pattern = NULL,
+  value_added_pattern = NULL,
+  value_added_total_pattern = NULL,
+  final_demand_pattern = NULL,
+  final_demand_total_pattern = NULL,
+  export_pattern = NULL,
+  export_total_pattern = NULL,
+  total_pattern = NULL
 )
 }
 \arguments{
@@ -22,7 +27,9 @@ table.}
 \item{competitive_import}{A scalar logical indicating whether the
 input-output table is a competitive import type.}
 
-\item{industry_pattern, import_pattern, value_added_pattern, final_demand_pattern, export_pattern, total_pattern}{A scalar character specifying the pattern for sector types.}
+\item{industry_pattern, import_pattern, value_added_pattern, final_demand_pattern, export_pattern, total_pattern}{A scalar character specifying the pattern for sector names.}
+
+\item{industry_total_pattern, import_total_pattern, value_added_total_pattern, final_demand_total_pattern, export_total_pattern}{A scalar character specifying the pattern for total sector names.}
 }
 \value{
 A data frame containing the sector types of an input-output table.
