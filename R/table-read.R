@@ -321,7 +321,16 @@ io_table_read_sector_types <- function(
             sector_names_todo,
             sector_total_pattern
           )
-          vctrs::vec_check_size(loc_sector_total, 1)
+          if (vctrs::vec_size(loc_sector_total) == 0) {
+            cli::cli_abort(
+              "{.str {sector_total_pattern}} does not match any sector name for {.var {sector_type}}."
+            )
+          } else if (vctrs::vec_size(loc_sector_total) > 1) {
+            cli::cli_abort(c(
+              "{.str {sector_total_pattern}} matches multiple sector names for {.var {sector_type}}.",
+              "i" = "Matched sector name{?s}: {.str {sector_names_todo[loc_sector_total]}}"
+            ))
+          }
 
           loc_sector <- seq_len(loc_sector_total - 1)
           sector_names_done[[sector_type]] <- sector_names_todo |>
