@@ -415,7 +415,7 @@ io_table_read_sector_types <- function(
 #' @param value_na A character vector of strings to be treated as NA values.
 #' @param total_tolerance Passed to [econio::io_table_multiregional()] or
 #' [econio::io_table_regional()]. By default, `.Machine$double.eps^0.5`.
-#' @param check_axis Passed to [econio::io_table_multiregional()] or
+#' @param check_axes Passed to [econio::io_table_multiregional()] or
 #' [econio::io_table_regional()]. By default, `TRUE`.
 #'
 #' @return An input-output table object.
@@ -426,15 +426,18 @@ io_table_read_data <- function(
   value_scale,
   value_na = c("", "NA"),
   total_tolerance = .Machine$double.eps^0.5,
-  check_axis = TRUE
+  check_axes = TRUE
 ) {
   f <- function(cells, scale, total_tolerance) {
     cells <- cells |>
+      tidyr::unnest("value") |>
       dplyr::mutate(
-        value = .data$value |>
-          purrr::map_chr(as.character) |>
-          readr::parse_number(na = value_na),
-        value = .data$value * .env$value_scale,
+        dplyr::across(
+          dplyr::all_of("value") & dplyr::where(is.numeric),
+          as.character
+        ),
+        value = readr::parse_number(.data$value, na = value_na) *
+          .env$value_scale,
       ) |>
       tidyr::drop_na("value")
 
@@ -444,14 +447,14 @@ io_table_read_data <- function(
         cells,
         competitive_import = competitive_import,
         total_tolerance = total_tolerance,
-        check_axis = check_axis
+        check_axes = check_axes
       )
     } else {
       econio::io_table_regional(
         cells,
         competitive_import = competitive_import,
         total_tolerance = total_tolerance,
-        check_axis = check_axis
+        check_axes = check_axes
       )
     }
   }
