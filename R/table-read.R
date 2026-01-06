@@ -309,7 +309,7 @@ io_table_read_sector_types <- function(
         if (is.null(sector_total_pattern)) {
           loc_sector <- stringr::str_which(
             sector_names_todo,
-            sector_pattern
+            sector_pattern %||% "a^"
           )
           sector_names_done[[sector_type]] <- sector_names_todo |>
             vctrs::vec_slice(loc_sector)
