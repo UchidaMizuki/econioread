@@ -4,8 +4,11 @@ Title: Read Input-Output Tables
 Version: 0.1.0
 Authors@R: 
     person("Mizuki", "Uchida", , "uchidamizuki@vivaldi.net", role = c("aut", "cre"))
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
+Description: Provides a step-by-step interface for reading input-output
+    tables from 'csv', 'xls', and 'xlsx' files into 'econio' input-output
+    table objects. Handles the extraction of headers, regions, sector
+    names, and sector types from raw spreadsheet cells, supporting both
+    regional and multiregional input-output tables.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
