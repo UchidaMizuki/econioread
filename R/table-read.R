@@ -428,7 +428,7 @@ io_table_read_data <- function(
   total_tolerance = .Machine$double.eps^0.5,
   check_axes = TRUE
 ) {
-  f <- function(cells, scale, total_tolerance) {
+  f <- function(cells, value_scale, value_na, total_tolerance, check_axes) {
     cells <- cells |>
       tidyr::unnest("value") |>
       dplyr::mutate(
@@ -460,7 +460,9 @@ io_table_read_data <- function(
   }
   adverbial::as_step(f, "io_table_read_data")(
     cells,
-    scale = scale,
-    total_tolerance = total_tolerance
+    value_scale = value_scale,
+    value_na = value_na,
+    total_tolerance = total_tolerance,
+    check_axes = check_axes
   )
 }
