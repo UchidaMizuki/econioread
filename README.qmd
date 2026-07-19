@@ -40,41 +40,160 @@ pak::pak("UchidaMizuki/econioread")
 
 ## Example
 
-`io_table_reader()` builds a step-by-step reader for a single input-output
-table file. Each step is applied in turn, transforming the raw cells of
-the file into a finished `econio` input-output table:
+`io_table_reader()` builds a step-by-step reader for a single
+input-output table file. Each `io_table_read_*()` step is applied in
+turn with the pipe, and `end_step()` finishes the pipeline and returns
+the `econio` input-output table.
+
+The example below reads a typical published table whose first row is a
+title, whose first two header rows and columns hold sector codes and
+sector names, and whose sector blocks end with "total" rows and columns
+such as `Total intermediate inputs` and `Total output`:
 
 ```{r}
 #| label: example
 #| eval: false
 library(econioread)
 
-io_table_reader("path/to/input-output-table.xlsx") |>
+io_table_reader("input-output-table.xlsx") |>
   io_table_read_cells(
-    sheets = "Sheet1",
-    rows_range = c(1, 100),
-    cols_range = c(1, 100)
+    sheets = 1,
+    rows_exclude = 1
   ) |>
   io_table_read_headers(
-    input_names = c(up = "input_sector_code"),
-    output_names = c(left = "output_sector_code")
+    input_names = c("input_sector_code", "input_sector_name"),
+    output_names = c("output_sector_code", "output_sector_name")
   ) |>
   io_table_read_sector_names(
-    input_sector_name_glue = "{input_sector_code}",
-    output_sector_name_glue = "{output_sector_code}"
+    input_sector_name_glue = "{input_sector_code}_{input_sector_name}",
+    output_sector_name_glue = "{output_sector_code}_{output_sector_name}"
   ) |>
   io_table_read_sector_types(
-    competitive_import = FALSE,
-    industry_pattern = "^\\d",
-    import_pattern = "Imports",
-    value_added_pattern = "Value added",
-    final_demand_pattern = "Final demand",
+    competitive_import = TRUE,
+    industry_total_pattern = "Total intermediate",
+    value_added_total_pattern = "Total value added",
+    final_demand_total_pattern = "Total final demand",
     export_pattern = "Exports",
-    total_pattern = "Total"
+    export_total_pattern = "Total exports",
+    import_pattern = "\\(less\\) Imports",
+    import_total_pattern = "\\(less\\) Total imports",
+    total_pattern = "Total output"
   ) |>
-  io_table_read_data(value_scale = 1e6)
+  io_table_read_data(value_scale = 1e6) |>
+  end_step()
 ```
+
+The steps work as follows:
+
+- `io_table_read_cells()` imports the raw cells of the file.
+  `rows_range`/`cols_range` and `rows_exclude`/`cols_exclude` trim
+  rows and columns, such as titles and notes, that are not part of the
+  table.
+- `io_table_read_headers()` peels off header rows and columns into
+  named columns. Input headers are taken from the `"left"` direction
+  and output headers from `"up"` by default; other
+  [unpivotr](https://nacnudus.github.io/unpivotr/) directions can be
+  given as names, e.g. `c(up = "input_sector_code")`.
+- `io_table_read_sector_names()` combines header columns into a single
+  sector name with [glue](https://glue.tidyverse.org) patterns.
+- `io_table_read_sector_types()` classifies sectors into industry,
+  value-added, final-demand, export, import, and total sectors.
+  `*_total_pattern` arguments locate the "total" row or column of each
+  block and classify the sectors before it, while `*_pattern` regular
+  expressions match sector names directly. `competitive_import`
+  controls which sector types appear on the input and output axes.
+- `io_table_read_data()` parses the cell values, applies
+  `value_scale`, and builds the input-output table with
+  `econio::io_table_regional()` or `econio::io_table_multiregional()`.
+  `total_tolerance` and `check_axes = FALSE` accommodate published
+  tables whose subtotals contain rounding drift.
+- `end_step()` returns the finished table.
+
+## Custom steps
+
+Published tables often need ad hoc cleaning between steps. Wrap any
+data-frame function with `as_step()` (re-exported from the
+[adverbial](https://github.com/UchidaMizuki/adverbial) package) to
+insert it into the pipeline:
+
+```{r}
+#| label: custom-steps
+#| eval: false
+io_table_reader("iotable.xls") |>
+  io_table_read_cells(sheets = 1) |>
+  io_table_read_headers(
+    input_names = c("input_sector_code", "input_sector_name"),
+    output_names = c("output_sector_code", "output_sector_name")
+  ) |>
+  as_step(dplyr::mutate)(
+    dplyr::across(
+      c(input_sector_code, output_sector_code),
+      \(x) stringr::str_remove(x, "^[:upper:]")
+    )
+  ) |>
+  io_table_read_sector_names(
+    input_sector_name_glue = "{input_sector_code}_{input_sector_name}",
+    output_sector_name_glue = "{output_sector_code}_{output_sector_name}"
+  ) |>
+  as_step(dplyr::filter)(
+    !stringr::str_detect(input_sector_name, "Subtotal$"),
+    !stringr::str_detect(output_sector_name, "Subtotal$")
+  ) |>
+  io_table_read_sector_types(...) |>
+  io_table_read_data(value_scale = 1e6) |>
+  end_step()
+```
+
+## Multiregional tables
 
 For multiregional tables, pass `region_type = "multiregional"` to
 `io_table_reader()`, which adds an `io_table_read_regions()` step to
-extract input and output regions before the sector types are identified.
+extract input and output regions before the sector names and types are
+identified. In a multiregional table, the headers carry region codes
+and names in addition to sector codes and names:
+
+```{r}
+#| label: example-multiregional
+#| eval: false
+io_table_reader(
+  "multiregional-input-output-table.xlsx",
+  region_type = "multiregional"
+) |>
+  io_table_read_cells(
+    sheets = 1,
+    rows_exclude = 1:4
+  ) |>
+  io_table_read_headers(
+    input_names = c(
+      "input_region_code",
+      "input_region_name",
+      "input_sector_code",
+      "input_sector_name"
+    ),
+    output_names = c(
+      "output_region_code",
+      "output_region_name",
+      "output_sector_code",
+      "output_sector_name"
+    )
+  ) |>
+  io_table_read_regions(
+    input_region_glue = "{input_region_code}_{input_region_name}",
+    output_region_glue = "{output_region_code}_{output_region_name}"
+  ) |>
+  io_table_read_sector_names(
+    input_sector_name_glue = "{input_sector_code}_{input_sector_name}",
+    output_sector_name_glue = "{output_sector_code}_{output_sector_name}"
+  ) |>
+  io_table_read_sector_types(
+    competitive_import = TRUE,
+    industry_total_pattern = "Total intermediate",
+    value_added_total_pattern = "Total value added",
+    final_demand_total_pattern = "Total final demand",
+    export_pattern = "Exports",
+    import_pattern = "\\(less\\) Imports",
+    total_pattern = "Total output"
+  ) |>
+  io_table_read_data(value_scale = 1e6) |>
+  end_step()
+```
