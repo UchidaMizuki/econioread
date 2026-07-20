@@ -6,10 +6,15 @@
 \alias{econioread-package}
 \title{econioread: Read Input-Output Tables}
 \description{
-More about what it does (maybe more than one line). Continuation lines should be indented.
+Provides a step-by-step interface for reading input-output tables from 'csv', 'xls', and 'xlsx' files into 'econio' input-output table objects. Handles the extraction of headers, regions, sector names, and sector types from raw spreadsheet cells, supporting both regional and multiregional input-output tables.
 }
 \author{
 \strong{Maintainer}: Mizuki Uchida \email{uchidamizuki@vivaldi.net}
+
+Authors:
+\itemize{
+  \item Mizuki Uchida \email{uchidamizuki@vivaldi.net}
+}
 
 }
 \keyword{internal}

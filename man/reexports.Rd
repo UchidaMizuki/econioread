@@ -12,6 +12,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{adverbial}{\code{\link[adverbial]{as_step}}, \code{\link[adverbial]{end_step}}}
+  \item{adverbial}{\code{\link[adverbial:as_step]{as_step()}}, \code{\link[adverbial:end_step]{end_step()}}}
 }}
 

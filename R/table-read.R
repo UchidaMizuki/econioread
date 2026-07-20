@@ -282,17 +282,17 @@ io_table_read_sector_types <- function(
       export = export_total_pattern
     )
 
-    sector_types <- if (import_type == "competitive_import") {
-      list(
+    sector_types <- switch(
+      import_type,
+      competitive_import = list(
         input = c("industry", "value_added", "total"),
         output = c("industry", "final_demand", "export", "import", "total")
-      )
-    } else {
-      list(
+      ),
+      noncompetitive_import = list(
         input = c("industry", "import", "value_added", "total"),
         output = c("industry", "final_demand", "export", "total")
       )
-    }
+    )
 
     sector_names <- vctrs::vec_init(list(), 2) |>
       rlang::set_names(c("input", "output"))
