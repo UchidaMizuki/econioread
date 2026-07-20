@@ -6,7 +6,7 @@
 \usage{
 io_table_read_sector_types(
   cells,
-  competitive_import,
+  import_type,
   industry_pattern = NULL,
   industry_total_pattern = NULL,
   import_pattern = NULL,
@@ -24,8 +24,9 @@ io_table_read_sector_types(
 \item{cells}{A data frame containing the cell contents of an input-output
 table.}
 
-\item{competitive_import}{A scalar logical indicating whether the
-input-output table is a competitive import type.}
+\item{import_type}{A scalar character, either `"competitive_import"` or
+`"noncompetitive_import"`, indicating the import type of the
+input-output table.}
 
 \item{industry_pattern, import_pattern, value_added_pattern, final_demand_pattern, export_pattern, total_pattern}{A scalar character specifying the pattern for sector names.}
 

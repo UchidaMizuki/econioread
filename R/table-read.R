@@ -220,8 +220,9 @@ io_table_read_regions <- function(
 #'
 #' @param cells A data frame containing the cell contents of an input-output
 #' table.
-#' @param competitive_import A scalar logical indicating whether the
-#' input-output table is a competitive import type.
+#' @param import_type A scalar character, either `"competitive_import"` or
+#' `"noncompetitive_import"`, indicating the import type of the
+#' input-output table.
 #' @param industry_pattern,import_pattern,value_added_pattern,final_demand_pattern,export_pattern,total_pattern
 #' A scalar character specifying the pattern for sector names.
 #' @param industry_total_pattern,import_total_pattern,value_added_total_pattern,final_demand_total_pattern,export_total_pattern
@@ -232,7 +233,7 @@ io_table_read_regions <- function(
 #' @export
 io_table_read_sector_types <- function(
   cells,
-  competitive_import,
+  import_type,
   industry_pattern = NULL,
   industry_total_pattern = NULL,
   import_pattern = NULL,
@@ -247,7 +248,7 @@ io_table_read_sector_types <- function(
 ) {
   f <- function(
     cells,
-    competitive_import,
+    import_type,
     industry_pattern,
     industry_total_pattern,
     import_pattern,
@@ -260,8 +261,10 @@ io_table_read_sector_types <- function(
     export_total_pattern,
     total_pattern
   ) {
-    competitive_import <- vctrs::vec_cast(competitive_import, logical())
-    vctrs::vec_check_size(competitive_import, 1)
+    import_type <- rlang::arg_match(
+      import_type,
+      c("competitive_import", "noncompetitive_import")
+    )
 
     sector_patterns <- list(
       industry = industry_pattern,
@@ -279,7 +282,7 @@ io_table_read_sector_types <- function(
       export = export_total_pattern
     )
 
-    sector_types <- if (competitive_import) {
+    sector_types <- if (import_type == "competitive_import") {
       list(
         input = c("industry", "value_added", "total"),
         output = c("industry", "final_demand", "export", "import", "total")
@@ -390,7 +393,7 @@ io_table_read_sector_types <- function(
   }
   adverbial::as_step(f, "io_table_read_sector_types")(
     cells,
-    competitive_import = competitive_import,
+    import_type = import_type,
     industry_pattern = industry_pattern,
     industry_total_pattern = industry_total_pattern,
     import_pattern = import_pattern,
@@ -441,18 +444,22 @@ io_table_read_data <- function(
       ) |>
       tidyr::drop_na("value")
 
-    competitive_import <- "import" %in% cells$output_sector_type
+    import_type <- if ("import" %in% cells$output_sector_type) {
+      "competitive_import"
+    } else {
+      "noncompetitive_import"
+    }
     if (all(c("input_region", "output_region") %in% names(cells))) {
       econio::io_table_multiregional(
         cells,
-        competitive_import = competitive_import,
+        import_type = import_type,
         total_tolerance = total_tolerance,
         check_axes = check_axes
       )
     } else {
       econio::io_table_regional(
         cells,
-        competitive_import = competitive_import,
+        import_type = import_type,
         total_tolerance = total_tolerance,
         check_axes = check_axes
       )

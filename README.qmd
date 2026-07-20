@@ -69,7 +69,7 @@ io_table_reader("input-output-table.xlsx") |>
     output_sector_name_glue = "{output_sector_code}_{output_sector_name}"
   ) |>
   io_table_read_sector_types(
-    competitive_import = TRUE,
+    import_type = "competitive_import",
     industry_total_pattern = "Total intermediate",
     value_added_total_pattern = "Total value added",
     final_demand_total_pattern = "Total final demand",
@@ -100,8 +100,9 @@ The steps work as follows:
   value-added, final-demand, export, import, and total sectors.
   `*_total_pattern` arguments locate the "total" row or column of each
   block and classify the sectors before it, while `*_pattern` regular
-  expressions match sector names directly. `competitive_import`
-  controls which sector types appear on the input and output axes.
+  expressions match sector names directly. `import_type` (either
+  `"competitive_import"` or `"noncompetitive_import"`) controls which
+  sector types appear on the input and output axes.
 - `io_table_read_data()` parses the cell values, applies
   `value_scale`, and builds the input-output table with
   `econio::io_table_regional()` or `econio::io_table_multiregional()`.
@@ -186,7 +187,7 @@ io_table_reader(
     output_sector_name_glue = "{output_sector_code}_{output_sector_name}"
   ) |>
   io_table_read_sector_types(
-    competitive_import = TRUE,
+    import_type = "competitive_import",
     industry_total_pattern = "Total intermediate",
     value_added_total_pattern = "Total value added",
     final_demand_total_pattern = "Total final demand",
